@@ -143,4 +143,3 @@ pheatmap(hm.dat, scale = "column", cluster_rows = FALSE, cluster_cols = FALSE)
 
 #DE analysis
 DE <- FindAllMarkers(SeuratObject.s, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
-write.table(DE, file=file.path(dir.out,paste(sample,"_marker_p",".txt",sep="")),quote=FALSE, row.names=FALSE, col.names=TRUE,sep="\t")
