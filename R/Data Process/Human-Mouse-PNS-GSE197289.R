@@ -86,8 +86,6 @@ humanPNS@misc$DataSegregation <- list("Tissue"   = names(table(humanPNS@meta.dat
 saveRDS(humanPNS, "GSE197289_humanPNS.RDS")
 
 
-
-
 # ===================================================================================== #
 # Mouse data
 setwd("C:/Users/xuanxuan/Dropbox/2021_Researches/Xuanxuan/Brain-scRNAseq/GSE197289")
@@ -176,4 +174,44 @@ mousePNS@misc$DataSegregation <- list("Tissue"   = names(table(mousePNS@meta.dat
 
 saveRDS(mousePNS, "GSE197289_mousePNS.RDS")
 
+
+# ============================================================================== #
+#45 marker analysis
+
+data.l<-list("human"=humanPNS,"mouse"=mousePNS)
+
+genelist<-"marker45_M&D_group4"
+marker.mat<-read.table(file.path("..",paste0(genelist,".txt")),header=TRUE,sep="\t")
+
+for(species.i in names(data.l)){
+  if(species.i=="human"){
+		marker.vec<-marker.mat$HumanName
+	}
+	if(species.i=="mouse"){
+		marker.vec<-marker.mat$MouseName
+	}
+  
+  SeuratObject<-data.l[[species.i]]
+  SeuratObject.g<-SeuratObject[which(rownames(SeuratObject) %in% marker.vec),]
+
+  SeuratObject.g<-SeuratObject.g[,which(SeuratObject.g$Model %in% c("Control","Naive"))]
+
+  idents.ordered<-c("NF","PEP","NP","Schwann","Satglia","cLTMR")
+
+  SeuratObject.s<-SeuratObject.g[,which(Idents(SeuratObject.g) %in% idents.ordered)]
+  levels(SeuratObject.s) <- rev(idents.ordered)
+
+  #DotPlot
+  DotPlot(SeuratObject.s, features = unique(marker.mat$HumanName), cols = c("grey","blue"), dot.scale = 6) + RotatedAxis()
+
+  AveExp<-AverageExpression(SeuratObject.s, features = unique(marker.mat$HumanName), slot="data")
+  hm.dat<-t(AveExp$RNA)
+  hm.dat<-hm.dat[match(idents.ordered,rownames(hm.dat)),]
+
+  #Heatmap
+  pheatmap(hm.dat, scale = "column", cluster_rows = FALSE, cluster_cols = FALSE)
+
+  #DE analysis
+  DE <- FindAllMarkers(SeuratObject.s, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
+}
 
