@@ -95,7 +95,7 @@ GSE60361@misc$DataSegregation <- list("Age" = names(table(GSE60361@meta.data$Age
 genelist<-"marker45_M&D_group4"
 marker.mat<-read.table(file.path("..",paste0(genelist,".txt")),header=TRUE,sep="\t")
 
-SeuratObject.g<-SeuratObject[which(rownames(GSE97930_FrontalCortex) %in% marker.mat$HumanName),]
+SeuratObject.g<-GSE97930_FrontalCortex[which(rownames(GSE97930_FrontalCortex) %in% marker.mat$HumanName),]
 
 SeuratObject.g <- RenameIdents(object = SeuratObject.s, `interneurons` = "neurons", `pyramidal SS` = "neurons", `pyramidal CA1` = "neurons")
 
