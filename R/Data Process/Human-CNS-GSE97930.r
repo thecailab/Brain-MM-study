@@ -122,10 +122,11 @@ marker.mat<-read.table(file.path("..",paste0(genelist,".txt")),header=TRUE,sep="
 
 SeuratObject.g<-SeuratObject[which(rownames(GSE97930_FrontalCortex) %in% marker.mat$HumanName),]
 
-idents.ordered<-c("neurons","oligodendrocytes","microglia","astrocytes","endothelial")
+SeuratObject.g <- RenameIdents(object = SeuratObject.g, `Excitatory Neurons` = "Neurons", `Inhibitory Neurons` = "Neurons")
+
+idents.ordered<-c("Neurons","Oligodendrocyte","Microglia","Astrocyte","Endothelial")
 
 SeuratObject.s<-SeuratObject.g[,which(Idents(SeuratObject) %in% idents.ordered)]
-SeuratObject.s<-SeuratObject.s[, which(Idents(SeuratObject.s) %in% idents.ordered)]
 levels(SeuratObject.s) <- rev(idents.ordered)
 
 #DotPlot
