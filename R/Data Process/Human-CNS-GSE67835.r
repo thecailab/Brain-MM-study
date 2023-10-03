@@ -124,7 +124,7 @@ GSE67835@misc$DataSegregation <- list("Age" = names(table(GSE67835@meta.data$Age
 genelist<-"marker45_M&D_group4"
 marker.mat<-read.table(file.path("..",paste0(genelist,".txt")),header=TRUE,sep="\t")
 
-SeuratObject.g<-SeuratObject[which(rownames(SeuratObject) %in% marker.mat$HumanName),]
+SeuratObject.g<-SeuratObject[which(rownames(GSE67835) %in% marker.mat$HumanName),]
 
 idents.ordered<-c("neurons","oligodendrocytes","microglia","astrocytes","endothelial")
 
