@@ -202,9 +202,9 @@ for(species.i in names(data.l)){
   levels(SeuratObject.s) <- rev(idents.ordered)
 
   #DotPlot
-  DotPlot(SeuratObject.s, features = unique(marker.mat$HumanName), cols = c("grey","blue"), dot.scale = 6) + RotatedAxis()
+  DotPlot(SeuratObject.s, features = unique(marker.vec), cols = c("grey","blue"), dot.scale = 6) + RotatedAxis()
 
-  AveExp<-AverageExpression(SeuratObject.s, features = unique(marker.mat$HumanName), slot="data")
+  AveExp<-AverageExpression(SeuratObject.s, features = unique(marker.vec), slot="data")
   hm.dat<-t(AveExp$RNA)
   hm.dat<-hm.dat[match(idents.ordered,rownames(hm.dat)),]
 
