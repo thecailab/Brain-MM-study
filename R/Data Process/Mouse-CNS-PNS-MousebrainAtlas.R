@@ -116,7 +116,7 @@ names(mouse.brain.seurat@misc$DE$all)
 meta.info.tmp <- read.csv("Tirosh-MM-2016-CD45P.csv",check.names = F,row.names = 1,na.strings = F,stringsAsFactors = F)
 
 meta1<-data.frame(Title="Molecular Architecture of the Mouse Nervous System",
-                  Authors="Amit Zeisel, Hannah Hochgerner, Peter Lönnerberg, Anna Johnsson, Fatima Memic, Job van der Zwan, Martin Häring, Emelie Braun, Lars E Borm, Gioele La Manno, Simone Codeluppi, Alessandro Furlan, Kawai Lee, Nathan Skene, Kenneth D Harris, Jens Hjerling-Leffler, Ernest Arenas, Patrik Ernfors, Ulrika Marklund, Sten Linnarsson",
+                  Authors="Amit Zeisel, Hannah Hochgerner, Peter LÃ¶nnerberg, Anna Johnsson, Fatima Memic, Job van der Zwan, Martin HÃ¤ring, Emelie Braun, Lars E Borm, Gioele La Manno, Simone Codeluppi, Alessandro Furlan, Kawai Lee, Nathan Skene, Kenneth D Harris, Jens Hjerling-Leffler, Ernest Arenas, Patrik Ernfors, Ulrika Marklund, Sten Linnarsson",
                   Publication= "Cell(2018)",
                   Summary="The mammalian nervous system executes complex behaviors controlled by specialized, precisely positioned, and interacting cell types. Here, we used RNA sequencing of half a million single cells to create a detailed census of cell types in the mouse nervous system. We mapped cell types spatially and derived a hierarchical, data-driven taxonomy. Neurons were the most diverse and were grouped by developmental anatomical units and by the expression of neurotransmitters and neuropeptides. Neuronal diversity was driven by genes encoding cell identity, synaptic connectivity, neurotransmission, and membrane conductance. We discovered seven distinct, regionally restricted astrocyte types that obeyed developmental boundaries and correlated with the spatial distribution of key glutamate and glycine neurotransmitters. In contrast, oligodendrocytes showed a loss of regional identity followed by a secondary diversification. The resource presented here lays a solid foundation for understanding the molecular architecture of the mammalian nervous system and enables genetic manipulation of specific cell types.",
                   Sample_Name="mouse brain-Cell-2018",
@@ -159,3 +159,45 @@ mouse.brain.seurat@misc$DataSegregation <- list("TaxonomyRank4" = names(table(mo
 
 
 saveRDS(mouse.brain.seurat, "mouse.brain.seurat.RDS")
+
+
+# ============================================================================== #
+#45 marker analysis
+
+data.l<-list("human"=humanPNS,"mouse"=mousePNS)
+
+genelist<-"marker45_M&D_group4"
+marker.mat<-read.table(file.path("..",paste0(genelist,".txt")),header=TRUE,sep="\t")
+
+SeuratObject.g<-mouse.brain.seurat[which(rownames(mouse.brain.seurat) %in% marker.mat$MouseName),]
+
+part.list<-list(CNS=c("Excitatory","Inhibitory","Oligodendrocytes","Microglia","Astrocytes","Vasc/endoth"),
+			PNS=c("NF","PEP","NP","Schwann","Satellite glia","cLTMR"))
+
+for(i in names(part.list))){
+
+  part<-part.list[[i]]
+
+	SeuratObject.s<-SeuratObject.g[, which(Idents(SeuratObject.g) %in% part)]
+
+  if(i=="CNS"){
+    idents.ordered<-unique(sub("Excitatory|Inhibitory","Neurons",part))
+  }else{
+    idents.ordered<-part
+  }
+  levels(SeuratObject.s) <- rev(idents.ordered)
+
+  #DotPlot
+  DotPlot(SeuratObject.s, features = unique(marker.mat$HumanName), cols = c("grey","blue"), dot.scale = 6) + RotatedAxis()
+
+  AveExp<-AverageExpression(SeuratObject.s, features = unique(marker.mat$MouseName), slot="data")
+  hm.dat<-t(AveExp$RNA)
+  hm.dat<-hm.dat[match(idents.ordered,rownames(hm.dat)),]
+
+  #Heatmap
+  pheatmap(hm.dat, scale = "column", cluster_rows = FALSE, cluster_cols = FALSE)
+
+  #DE analysis
+  DE <- FindAllMarkers(SeuratObject.s, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
+}
+
