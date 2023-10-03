@@ -129,7 +129,6 @@ SeuratObject.g<-SeuratObject[which(rownames(GSE67835) %in% marker.mat$HumanName)
 idents.ordered<-c("neurons","oligodendrocytes","microglia","astrocytes","endothelial")
 
 SeuratObject.s<-SeuratObject.g[,which(Idents(SeuratObject) %in% idents.ordered)]
-SeuratObject.s<-SeuratObject.s[, which(Idents(SeuratObject.s) %in% idents.ordered)]
 levels(SeuratObject.s) <- rev(idents.ordered)
 
 #DotPlot
