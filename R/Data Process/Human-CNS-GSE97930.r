@@ -126,7 +126,7 @@ SeuratObject.g <- RenameIdents(object = SeuratObject.g, `Excitatory Neurons` = "
 
 idents.ordered<-c("Neurons","Oligodendrocyte","Microglia","Astrocyte","Endothelial")
 
-SeuratObject.s<-SeuratObject.g[,which(Idents(SeuratObject) %in% idents.ordered)]
+SeuratObject.s<-SeuratObject.g[,which(Idents(SeuratObject.g) %in% idents.ordered)]
 levels(SeuratObject.s) <- rev(idents.ordered)
 
 #DotPlot
