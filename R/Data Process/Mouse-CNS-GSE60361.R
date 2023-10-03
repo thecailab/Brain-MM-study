@@ -53,7 +53,7 @@ meta.info.tmp <- read.csv(paste0(data_loc, "Tirosh-MM-2016-CD45P.csv"),
                           stringsAsFactors = F)
 
 meta1<-data.frame(Title="Cell types in the mouse cortex and hippocampus revealed by single-cell RNA-seq",
-                  Authors="Amit Zeisel, Ana B. Muñoz-Manchado, Simone Codeluppi, Peter Lönnerberg, Gioele La Manno, Anna Juréus, Sueli Marques, Hermany Munguba, Liqun He, Christer Betsholtz, Charlotte Rolny, Gonçalo Castelo-Branco, Jens Hjerling-Leffler, Sten Linnarsson",
+                  Authors="Amit Zeisel, Ana B. MuÃ±oz-Manchado, Simone Codeluppi, Peter LÃ¶nnerberg, Gioele La Manno, Anna JurÃ©us, Sueli Marques, Hermany Munguba, Liqun He, Christer Betsholtz, Charlotte Rolny, GonÃ§alo Castelo-Branco, Jens Hjerling-Leffler, Sten Linnarsson",
                   Publication= "Science(2015)",
                   Summary="The mammalian cerebral cortex supports cognitive functions such as sensorimotor integration, memory, and social behaviors. Normal brain function relies on a diverse set of differentiated cell types, including neurons, glia, and vasculature. Here,we have used large-scale single-cell RNA sequencing (RNA-seq) to classify cells in the mouse somatosensory cortex and hippocampal CA1 region.We found 47 molecularly distinct subclasses, comprising all known major cell types in the cortex.We identified numerous marker genes, which allowed alignment with known cell types, morphology, and location.We found a layer I interneuron expressing Pax6 and a distinct postmitotic oligodendrocyte subclass marked by Itpr2. Across the diversity of cortical cell types, transcription factors formed a complex, layered regulatory code, suggesting a mechanism for the maintenance of adult cell type identity.",
                   Sample_Name="cortex and hippocampus_Science(2015)",
@@ -87,3 +87,32 @@ GSE60361@misc$DataSegregation <- list("Age" = names(table(GSE60361@meta.data$Age
                                       "Tissue" = names(table(GSE60361@meta.data$Tissue)))
 
 # saveRDS(GSE60361,"GSE60361.rds")
+
+
+# ============================================================================== #
+#45 marker analysis
+
+genelist<-"marker45_M&D_group4"
+marker.mat<-read.table(file.path("..",paste0(genelist,".txt")),header=TRUE,sep="\t")
+
+SeuratObject.g<-SeuratObject[which(rownames(GSE97930_FrontalCortex) %in% marker.mat$HumanName),]
+
+SeuratObject.g <- RenameIdents(object = SeuratObject.s, `interneurons` = "neurons", `pyramidal SS` = "neurons", `pyramidal CA1` = "neurons")
+
+idents.ordered<-c("neurons","oligodendrocytes","microglia","astrocytes_ependymal","endothelial-mural")
+
+SeuratObject.s<-SeuratObject.g[,which(Idents(SeuratObject.g) %in% idents.ordered)]
+levels(SeuratObject.s) <- rev(idents.ordered)
+
+#DotPlot
+DotPlot(SeuratObject.s, features = unique(marker.mat$HumanName), cols = c("grey","blue"), dot.scale = 6) + RotatedAxis()
+
+AveExp<-AverageExpression(SeuratObject.s, features = unique(marker.mat$HumanName), slot="data")
+hm.dat<-t(AveExp$RNA)
+hm.dat<-hm.dat[match(idents.ordered,rownames(hm.dat)),]
+
+#Heatmap
+pheatmap(hm.dat, scale = "column", cluster_rows = FALSE, cluster_cols = FALSE)
+
+#DE analysis
+DE <- FindAllMarkers(SeuratObject.s, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
