@@ -118,7 +118,7 @@ GSE67835@misc$DataSegregation <- list("Age" = names(table(GSE67835@meta.data$Age
 
 # saveRDS(GSE67835,"GSE67835.rds")
 
-
+# ============================================================================== #
 #45 marker analysis
 
 genelist<-"marker45_M&D_group4"
