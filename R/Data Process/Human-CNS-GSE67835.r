@@ -117,3 +117,31 @@ GSE67835@misc$DataSegregation <- list("Age" = names(table(GSE67835@meta.data$Age
                                   "Tissue" = names(table(GSE67835@meta.data$Tissue)))
 
 # saveRDS(GSE67835,"GSE67835.rds")
+
+
+#45 marker analysis
+
+genelist<-"marker45_M&D_group4"
+marker.mat<-read.table(file.path("..",paste0(genelist,".txt")),header=TRUE,sep="\t")
+
+SeuratObject.g<-SeuratObject[which(rownames(SeuratObject) %in% marker.mat$HumanName),]
+
+idents.ordered<-c("neurons","oligodendrocytes","microglia","astrocytes","endothelial")
+
+SeuratObject.s<-SeuratObject.g[,which(Idents(SeuratObject) %in% idents.ordered)]
+SeuratObject.s<-SeuratObject.s[, which(Idents(SeuratObject.s) %in% idents.ordered)]
+levels(SeuratObject.s) <- rev(idents.ordered)
+
+#DotPlot
+DotPlot(SeuratObject.s, features = unique(marker.mat$HumanName), cols = c("grey","blue"), dot.scale = 6) + RotatedAxis()
+
+AveExp<-AverageExpression(SeuratObject.s, features = unique(marker.mat$HumanName), slot="data")
+hm.dat<-t(AveExp$RNA)
+hm.dat<-hm.dat[match(idents.ordered,rownames(hm.dat)),]
+
+#Heatmap
+pheatmap(hm.dat, scale = "column", cluster_rows = FALSE, cluster_cols = FALSE)
+
+#DE analysis
+DE <- FindAllMarkers(SeuratObject.s, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
+write.table(DE, file=file.path(dir.out,paste(sample,"_marker_p",".txt",sep="")),quote=FALSE, row.names=FALSE, col.names=TRUE,sep="\t")
