@@ -49,9 +49,9 @@ dev.off()
 
 
 # To the interest of research, only keep cells of Trigeminal Neorons satisfying several criteria.
-# criteria for inclusion: 500±7,500 genes, 0.2% mitochondrial transcripts; genes expressed in less
+# criteria for inclusion: 500Â±7,500 genes, 0.2% mitochondrial transcripts; genes expressed in less
 # than 6 neurons were also excluded leaving a dataset of 3580 neurons and more than 15,000 genes.
-# 500±7,500 genes, 0.2% mitochondrial transcripts
+# 500Â±7,500 genes, 0.2% mitochondrial transcripts
 GSE101984.puri<-GSE101984.seurat[,which(Idents(GSE101984.seurat)=="Trigeminal Neorons")]
 GSE101984.puri[["percent.mt"]] <- PercentageFeatureSet(GSE101984.puri, pattern = "^MT-")
 GSE101984.puri <- subset(GSE101984.puri, subset = nFeature_RNA > 500 & nFeature_RNA < 7500 & percent.mt < 0.2)
@@ -150,3 +150,30 @@ GSE101984.puri@misc$meta.info <- meta.info
 # ------------add demographic meta info -------------------- #
 GSE101984.puri@meta.data$Age <- rep("3-6 wks",ncol(GSE101984.puri))
 GSE101984.puri@misc$DataSegregation <- list("Age" = names(table(GSE101984.seurat@meta.data$Age)))
+
+
+# ============================================================================== #
+#45 marker analysis
+
+genelist<-"marker45_M&D_group4"
+marker.mat<-read.table(file.path("..",paste0(genelist,".txt")),header=TRUE,sep="\t")
+
+SeuratObject.g<-GSE101984.puri[which(rownames(GSE101984.puri) %in% marker.mat$MouseName),]
+
+idents.ordered<-c("NF","PEP","NP","Schwann","Satellite","cLTMR")
+
+SeuratObject.s<-SeuratObject.g[,which(Idents(SeuratObject.g) %in% idents.ordered)]
+levels(SeuratObject.s) <- rev(idents.ordered)
+
+#DotPlot
+DotPlot(SeuratObject.s, features = unique(marker.mat$MouseName), cols = c("grey","blue"), dot.scale = 6) + RotatedAxis()
+
+AveExp<-AverageExpression(SeuratObject.s, features = unique(marker.mat$MouseName), slot="data")
+hm.dat<-t(AveExp$RNA)
+hm.dat<-hm.dat[match(idents.ordered,rownames(hm.dat)),]
+
+#Heatmap
+pheatmap(hm.dat, scale = "column", cluster_rows = FALSE, cluster_cols = FALSE)
+
+#DE analysis
+DE <- FindAllMarkers(SeuratObject.s, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
